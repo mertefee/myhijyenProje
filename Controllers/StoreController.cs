@@ -52,8 +52,9 @@ namespace myhijyenProje.Controllers
         public IActionResult Details(int id)
         {
             var product = _context.Products
-                .Include(p => p.Category)
-                .FirstOrDefault(p => p.Id == id);
+     .Include(p => p.Category)
+     .Include(p => p.Images)
+     .FirstOrDefault(p => p.Id == id);
 
             if (product == null) return NotFound();
 

@@ -1,0 +1,305 @@
+﻿@using myhijyenProje.Models
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+
+    var lowStockProducts = ViewBag.LowStockProducts as IEnumerable<Product>
+                           ?? Enumerable.Empty<Product>();
+
+    var lastOrders = ViewBag.LastOrders as IEnumerable<Order>
+                     ?? Enumerable.Empty<Order>();
+
+    string selectedRange = ViewBag.Range ?? "monthly";
+}
+
+<style>
+    .dashboard-page {
+        background: #f5f7fb;
+        margin: -24px;
+        padding: 32px;
+        min-height: 100vh;
+    }
+
+    .premium-header {
+        background: linear-gradient(135deg, #111827, #1f2937);
+        color: white;
+        border-radius: 24px;
+        padding: 28px;
+        box-shadow: 0 20px 50px rgba(15, 23, 42, .18);
+    }
+
+    .premium-card {
+        border: 0;
+        border-radius: 22px;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, .08);
+    }
+
+    .stat-card {
+        border: 0;
+        border-radius: 22px;
+        padding: 22px;
+        background: white;
+        box-shadow: 0 16px 40px rgba(15, 23, 42, .08);
+        height: 100%;
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+
+    .stat-value {
+        font-size: 30px;
+        font-weight: 800;
+        color: #111827;
+    }
+
+    .filter-pill {
+        border-radius: 999px;
+        padding: 10px 16px;
+    }
+
+    .table-premium th {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .table-premium td {
+        vertical-align: middle;
+    }
+
+    .status-badge {
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 12px;
+        background: #eef2ff;
+        color: #3730a3;
+    }
+</style>
+
+<div class="dashboard-page">
+
+    <div class="premium-header mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+            <div>
+                <h2 class="mb-1">Admin Dashboard</h2>
+                <p class="mb-0 text-white-50">
+                    Satış, sipariş ve stok durumunu tek ekrandan yönet.
+                </p>
+            </div>
+
+            <div class="text-md-end">
+                <div class="text-white-50 small">Seçili tarih aralığı</div>
+                <div class="fw-bold">
+                    @ViewBag.StartDate - @ViewBag.EndDate
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card premium-card mb-4">
+        <div class="card-body">
+            <form method="get" asp-controller="Admin" asp-action="Dashboard" class="row g-3 align-items-end">
+
+                <div class="col-md-3">
+                    <label class="form-label">Satış Aralığı</label>
+                    <select name="range" class="form-select filter-pill" onchange="this.form.submit()">
+                        @if (selectedRange == "daily")
+                        {
+                            <option value="daily" selected>Günlük</option>
+                        }
+                        else
+                        {
+                            <option value="daily">Günlük</option>
+                        }
+
+                        @if (selectedRange == "weekly")
+                        {
+                            <option value="weekly" selected>Haftalık</option>
+                        }
+                        else
+                        {
+                            <option value="weekly">Haftalık</option>
+                        }
+
+                        @if (selectedRange == "monthly")
+                        {
+                            <option value="monthly" selected>Aylık</option>
+                        }
+                        else
+                        {
+                            <option value="monthly">Aylık</option>
+                        }
+
+                        @if (selectedRange == "yearly")
+                        {
+                            <option value="yearly" selected>Yıllık</option>
+                        }
+                        else
+                        {
+                            <option value="yearly">Yıllık</option>
+                        }
+
+                        @if (selectedRange == "custom")
+                        {
+                            <option value="custom" selected>Özel Tarih</option>
+                        }
+                        else
+                        {
+                            <option value="custom">Özel Tarih</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Başlangıç</label>
+                    <input type="date" name="startDate" value="@ViewBag.StartDate" class="form-control filter-pill" />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Bitiş</label>
+                    <input type="date" name="endDate" value="@ViewBag.EndDate" class="form-control filter-pill" />
+                </div>
+
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-dark w-100 filter-pill">
+                        Filtrele
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-label">Toplam Satış</div>
+                <div class="stat-value">@ViewBag.TotalSales ₺</div>
+                <div class="text-muted small">Seçili tarih aralığına göre</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-label">Sipariş Sayısı</div>
+                <div class="stat-value">@ViewBag.TotalOrders</div>
+                <div class="text-muted small">Filtreye göre sipariş</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-label">Toplam Ürün</div>
+                <div class="stat-value">@ViewBag.TotalProducts</div>
+                <div class="text-muted small">Sistemdeki ürünler</div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-label">Kategori</div>
+                <div class="stat-value">@ViewBag.TotalCategories</div>
+                <div class="text-muted small">Aktif kategori sayısı</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-7">
+            <div class="card premium-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="mb-0">Son Siparişler</h5>
+                            <small class="text-muted">En yeni 8 sipariş</small>
+                        </div>
+                    </div>
+
+                    @if (lastOrders.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-premium align-middle">
+                                <thead>
+                                    <tr>
+                                        <th>Sipariş</th>
+                                        <th>Müşteri</th>
+                                        <th>Tarih</th>
+                                        <th>Tutar</th>
+                                        <th>Durum</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var order in lastOrders)
+                                    {
+                                        <tr>
+                                            <td class="fw-bold">#@order.Id</td>
+                                            <td>@order.FullName</td>
+                                            <td>@order.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                            <td class="fw-bold">@order.Total ₺</td>
+                                            <td>
+                                                <span class="status-badge">@order.Status</span>
+                                            </td>
+                                            <td class="text-end">
+                                                <a asp-controller="Admin"
+                                                   asp-action="OrderDetails"
+                                                   asp-route-id="@order.Id"
+                                                   class="btn btn-sm btn-outline-dark rounded-pill">
+                                                    Detay
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Henüz sipariş yok.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="card premium-card">
+                <div class="card-body">
+                    <h5 class="mb-1">Düşük Stok Ürünler</h5>
+                    <small class="text-muted">Stok 5 ve altı olan ürünler</small>
+
+                    <hr />
+
+                    @if (lowStockProducts.Any())
+                    {
+                        @foreach (var product in lowStockProducts)
+                        {
+                            <div class="d-flex justify-content-between align-items-center border-bottom py-3">
+                                <div>
+                                    <div class="fw-bold">@product.Name</div>
+                                    <small class="text-muted">Ürün ID: @product.Id</small>
+                                </div>
+
+                                <span class="badge bg-warning text-dark rounded-pill">
+                                    @product.Stock stok
+                                </span>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Düşük stoklu ürün yok.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>

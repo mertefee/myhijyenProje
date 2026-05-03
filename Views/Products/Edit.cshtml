@@ -1,53 +1,118 @@
 ﻿@model myhijyenProje.Models.Product
 
-<h2>Ürün Düzenle</h2>
+@{
+    ViewData["Title"] = "Ürün Düzenle";
+}
 
-<div asp-validation-summary="All" class="text-danger"></div>
+<div class="container mt-4">
+    <h2>Ürün Düzenle</h2>
 
-<form method="post">
-    @Html.AntiForgeryToken()
+    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
 
-    <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="ImageUrl" />
 
-    <div class="mb-3">
-        <label class="form-label">Ad</label>
-        <input asp-for="Name" class="form-control" />
-    </div>
+        <div asp-validation-summary="All" class="text-danger"></div>
 
-    <div class="mb-3">
-        <label class="form-label">Açıklama</label>
-        <input asp-for="Description" class="form-control" />
-        <div class="mb-3">
-            <label class="form-label">Detay</label>
-            <textarea asp-for="Details" class="form-control" rows="5"></textarea>
-            <span asp-validation-for="Details" class="text-danger"></span>
+        <div class="form-group mb-3">
+            <label>Ürün Adı</label>
+            <input asp-for="Name" class="form-control" />
         </div>
 
-    </div>
+        <div class="form-group mb-3">
+            <label>Açıklama</label>
+            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Fiyat</label>
-        <input asp-for="Price" class="form-control" />
-    </div>
+        <div class="form-group mb-3">
+            <label>Detay</label>
+            <textarea asp-for="Details" class="form-control" rows="3"></textarea>
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Stok</label>
-        <input asp-for="Stock" class="form-control" />
-    </div>
+        <div class="form-group mb-3">
+            <label>Fiyat</label>
+            <input asp-for="Price" class="form-control" />
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Görsel URL</label>
-        <input asp-for="ImageUrl" class="form-control" />
-    </div>
+        <div class="form-group mb-3">
+            <label>Stok</label>
+            <input asp-for="Stock" class="form-control" />
+        </div>
 
-    <div class="mb-3">
-        <label class="form-label">Kategori</label>
-        <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId">
-            <option value="">Kategori Seç</option>
-        </select>
-        <span asp-validation-for="CategoryId" class="text-danger"></span>
-    </div>
+        <div class="form-group mb-3">
+            <label>Kategori</label>
+            <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
+        </div>
 
-    <button class="btn btn-primary" type="submit">Güncelle</button>
-    <a class="btn btn-secondary" href="/Products">Geri</a>
-</form>
+        <div class="form-group mb-4">
+            <label>Yeni Görseller Ekle</label>
+            <input type="file" name="imageFiles" multiple class="form-control" />
+            <small class="text-muted">JPG, JPEG, PNG veya WEBP yükleyebilirsin. Maksimum 5 MB.</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            Kaydet
+        </button>
+
+        <a asp-action="Index" class="btn btn-secondary">
+            Geri Dön
+        </a>
+    </form>
+
+    <hr class="my-4" />
+
+    <h4>Mevcut Görseller</h4>
+
+    @if (Model.Images != null && Model.Images.Any())
+    {
+        <div class="row">
+            @foreach (var img in Model.Images)
+            {
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100 text-center p-2">
+
+                        <img src="@img.ImageUrl"
+                             class="img-fluid mb-2"
+                             style="height:150px; object-fit:contain;" />
+
+                        @if (Model.ImageUrl == img.ImageUrl)
+                        {
+                            <span class="badge bg-success mb-2">Ana Görsel</span>
+                        }
+                        else
+                        {
+                            <form asp-action="SetMainImage" method="post" class="mb-2">
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden" name="imageId" value="@img.Id" />
+                                <input type="hidden" name="productId" value="@Model.Id" />
+
+                                <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                    Ana Görsel Yap
+                                </button>
+                            </form>
+                        }
+
+                        <form asp-action="DeleteImage" method="post"
+                              onsubmit="return confirm('Bu görsel silinsin mi?');">
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden" name="imageId" value="@img.Id" />
+                            <input type="hidden" name="productId" value="@Model.Id" />
+
+                            <button type="submit" class="btn btn-danger btn-sm w-100">
+                                Sil
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <p class="text-muted">Bu ürüne ait görsel yok.</p>
+    }
+</div>

@@ -50,8 +50,22 @@ namespace myhijyenProje.Controllers
             var cart = GetCart();
             var existing = cart.FirstOrDefault(x => x.ProductId == id);
 
-            if (existing != null) existing.Quantity++;
+            if (product.Stock <= 0)
+            {
+                return Json(new { success = false, message = "Bu ürün stokta yok." });
+            }
+
+            if (existing != null)
+            {
+                if (existing.Quantity >= product.Stock)
+                {
+                    return Json(new { success = false, message = "Stoktan fazla ürün ekleyemezsin." });
+                }
+
+                existing.Quantity++;
+            }
             else
+            {
                 cart.Add(new CartItem
                 {
                     ProductId = product.Id,
@@ -59,6 +73,7 @@ namespace myhijyenProje.Controllers
                     Price = product.Price,
                     Quantity = 1
                 });
+            }
 
             SaveCart(cart);
 

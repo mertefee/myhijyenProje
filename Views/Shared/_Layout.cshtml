@@ -25,6 +25,7 @@
     <div id="pageLoader">
         <div class="loader-circle"></div>
     </div>
+
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
             <div class="container">
@@ -49,7 +50,7 @@
                                 Sepetim
                                 <span id="cartBadge"
                                       class="badge bg-danger badge-cart"
-                                      style="display:@(cartCount>0 ? "inline-block" : "none");">
+                                      style="display:@(cartCount > 0 ? "inline-block" : "none");">
                                     @cartCount
                                 </span>
                             </a>
@@ -64,19 +65,30 @@
                             </li>
                         }
 
-
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="AdminOrders" asp-action="Index">Siparişler</a>
+                                <a class="nav-link" asp-controller="Admin" asp-action="Dashboard">
+                                    Dashboard
+                                </a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Products" asp-action="Index">Products</a>
+                                <a class="nav-link" asp-controller="AdminOrders" asp-action="Index">
+                                    Siparişler
+                                </a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Categories" asp-action="Index">Categories</a>
+                                <a class="nav-link" asp-controller="Products" asp-action="Index">
+                                    Products
+                                </a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Categories" asp-action="Index">
+                                    Categories
+                                </a>
                             </li>
                         }
 
@@ -108,7 +120,6 @@
         </div>
     </footer>
 
-    <!-- Toast Container -->
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080;">
         <div id="appToast" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
@@ -118,14 +129,6 @@
         </div>
     </div>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
-    @RenderSection("Scripts", required: false)
-
-    <!-- CART SLIDE PANEL -->
     <div id="cartOverlay" class="cart-overlay" onclick="closeCartPanel()"></div>
 
     <div id="cartPanel" class="cart-panel">
@@ -157,6 +160,12 @@
             </a>
         </div>
     </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @RenderSection("Scripts", required: false)
 
 </body>
 </html>
