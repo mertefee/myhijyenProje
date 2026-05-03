@@ -1,0 +1,168 @@
+﻿@model myhijyenProje.Models.Product
+
+@{
+    ViewData["Title"] = Model.Name;
+
+    var similar = ViewBag.SimilarProducts as IEnumerable<myhijyenProje.Models.Product>
+                  ?? Enumerable.Empty<myhijyenProje.Models.Product>();
+
+    var reviews = ViewBag.Reviews as IEnumerable<myhijyenProje.Models.ProductReview>
+                  ?? Enumerable.Empty<myhijyenProje.Models.ProductReview>();
+
+    double avg = 0;
+    try { avg = (double)(ViewBag.AvgRating ?? 0); } catch { avg = 0; }
+}
+
+<div class="container mt-3 page-enter">
+
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="/Store">Anasayfa</a>
+            </li>
+
+            @if (Model.Category != null)
+            {
+                <li class="breadcrumb-item">
+                    <a asp-controller="Store" asp-action="Index" asp-route-categoryId="@Model.Category.Id">
+                        @Model.Category.Name
+                    </a>
+                </li>
+            }
+
+            <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <div class="col-md-5">
+            <div style="background:#f6f7f8;height:360px;display:flex;align-items:center;justify-content:center;border-radius:14px;">
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl" alt="@Model.Name"
+                         style="max-width:100%;max-height:100%;object-fit:contain;" />
+                }
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <h2 class="fw-bold">@Model.Name</h2>
+
+            @if (Model.Category != null)
+            {
+                <div class="text-muted mb-2">Kategori: @Model.Category.Name</div>
+            }
+
+            <div class="fs-4 fw-bold mb-3">@Model.Price ₺</div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
+            {
+                <p class="mb-3">@Model.Description</p>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Details))
+            {
+                <h5 class="mt-4">Ürün Detayı</h5>
+                <div style="white-space:pre-line;">@Model.Details</div>
+            }
+
+            <form asp-controller="Cart" asp-action="AddToCart" method="post"
+                  class="mt-4 add-to-cart-form">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+                <button type="submit" class="btn btn-dark btn-smooth px-4">
+                    🛒 Sepete Ekle
+                </button>
+            </form>
+
+            <a href="/Store" class="btn btn-link mt-3">← Mağazaya dön</a>
+        </div>
+    </div>
+
+    <hr class="my-4" />
+
+    <h5 class="fw-bold">Değerlendirmeler</h5>
+    <div class="text-muted mb-2">Ortalama: <strong>@avg.ToString("0.0")</strong> / 5</div>
+
+    <form asp-controller="Store" asp-action="AddReview" method="post"
+          class="card border-0 shadow-sm p-3 mb-3" style="border-radius:14px;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="productId" value="@Model.Id" />
+
+        <div class="mb-2">
+            <label class="form-label">Puan</label>
+            <select name="rating" class="form-select" style="max-width:200px;">
+                <option value="5">5 - Mükemmel</option>
+                <option value="4">4 - Çok iyi</option>
+                <option value="3">3 - İyi</option>
+                <option value="2">2 - Orta</option>
+                <option value="1">1 - Kötü</option>
+            </select>
+        </div>
+
+        <div class="mb-2">
+            <label class="form-label">Yorum</label>
+            <textarea name="comment" class="form-control" rows="3" maxlength="500"></textarea>
+        </div>
+
+        <button class="btn btn-dark btn-smooth" type="submit">Yorumu Gönder</button>
+    </form>
+
+    @if (!reviews.Any())
+    {
+        <div class="alert alert-light border">Henüz yorum yok.</div>
+    }
+    else
+    {
+        @foreach (var r in reviews)
+        {
+            <div class="card border-0 shadow-sm p-3 mb-2" style="border-radius:14px;">
+                <div class="fw-bold">⭐ @r.Rating / 5</div>
+                <div class="text-muted small">@r.CreatedAt.ToString("dd.MM.yyyy HH:mm")</div>
+                <div class="mt-2">@r.Comment</div>
+            </div>
+        }
+    }
+
+    @if (similar.Any())
+    {
+        <hr class="my-4" />
+        <h5 class="fw-bold mb-3">Benzer Ürünler</h5>
+
+        <div class="row shop-grid">
+            @foreach (var s in similar)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card product-card h-100">
+                        <a asp-controller="Store" asp-action="Details" asp-route-id="@s.Id"
+                           style="text-decoration:none; color:inherit;">
+                            <div class="product-media">
+                                @if (!string.IsNullOrEmpty(s.ImageUrl))
+                                {
+                                    <img src="@s.ImageUrl" alt="@s.Name" />
+                                }
+                            </div>
+                        </a>
+
+                        <div class="card-body text-center">
+                            <a asp-controller="Store" asp-action="Details" asp-route-id="@s.Id"
+                               style="text-decoration:none; color:inherit;">
+                                <h6 class="fw-bold mb-1">@s.Name</h6>
+                            </a>
+
+                            <div class="text-muted mb-2">@s.Price ₺</div>
+
+                            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="add-to-cart-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@s.Id" />
+                                <button type="submit" class="btn btn-dark btn-sm btn-smooth px-3">
+                                    🛒 Sepete Ekle
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,53 @@
+﻿@model myhijyenProje.Models.Product
+
+<h2>Ürün Düzenle</h2>
+
+<div asp-validation-summary="All" class="text-danger"></div>
+
+<form method="post">
+    @Html.AntiForgeryToken()
+
+    <input type="hidden" asp-for="Id" />
+
+    <div class="mb-3">
+        <label class="form-label">Ad</label>
+        <input asp-for="Name" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Açıklama</label>
+        <input asp-for="Description" class="form-control" />
+        <div class="mb-3">
+            <label class="form-label">Detay</label>
+            <textarea asp-for="Details" class="form-control" rows="5"></textarea>
+            <span asp-validation-for="Details" class="text-danger"></span>
+        </div>
+
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Fiyat</label>
+        <input asp-for="Price" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Stok</label>
+        <input asp-for="Stock" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Görsel URL</label>
+        <input asp-for="ImageUrl" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Kategori</label>
+        <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId">
+            <option value="">Kategori Seç</option>
+        </select>
+        <span asp-validation-for="CategoryId" class="text-danger"></span>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Güncelle</button>
+    <a class="btn btn-secondary" href="/Products">Geri</a>
+</form>

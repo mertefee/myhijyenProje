@@ -1,0 +1,55 @@
+﻿@model IEnumerable<myhijyenProje.Models.Product>
+
+<h2 class="mb-4">Ürünler</h2>
+
+<div class="container">
+    <div class="row shop-grid">
+        @foreach (var item in Model)
+        {
+            <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                <div class="card product-card h-100">
+
+                    <!-- Görsele Tıklayınca Detay -->
+                    <a asp-controller="Store"
+                       asp-action="Details"
+                       asp-route-id="@item.Id"
+                       style="text-decoration:none; color:inherit;">
+
+                        <div class="product-media">
+                            @if (!string.IsNullOrEmpty(item.ImageUrl))
+                            {
+                                <img src="@item.ImageUrl" alt="@item.Name" />
+                            }
+                        </div>
+                    </a>
+
+                    <div class="card-body text-center">
+
+                        <!-- Ürün Adına Tıklayınca Detay -->
+                        <a asp-controller="Store"
+                           asp-action="Details"
+                           asp-route-id="@item.Id"
+                           style="text-decoration:none; color:inherit;">
+                            <h6 class="fw-bold mb-1">@item.Name</h6>
+                        </a>
+
+                        <div class="text-muted mb-2">@item.Price ₺</div>
+
+                        <!-- Sepete Ekle Butonu -->
+                        <form asp-controller="Cart"
+                              asp-action="AddToCart"
+                              method="post"
+                              class="mt-2">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit"
+                                    class="btn btn-dark btn-sm btn-smooth px-3">
+                                🛒 Sepete Ekle
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,71 @@
+﻿@model List<myhijyenProje.Models.CartItem>
+
+<h2>Sepetim</h2>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <div class="empty-state-icon">🛒</div>
+        <h4>Sepetin boş</h4>
+        <p class="text-muted">Ürünleri inceleyip sepete ekleyebilirsin.</p>
+        <a href="/Store" class="btn btn-dark mt-2">Alışverişe Başla</a>
+    </div>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Ürün</th>
+                <th>Fiyat</th>
+                <th>Adet</th>
+                <th>Toplam</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.ProductName</td>
+                    <td>@item.Price ₺</td>
+                    <td>
+                        <a asp-action="Decrease"
+                           asp-route-id="@item.ProductId"
+                           class="btn btn-outline-dark btn-sm qty-btn">-</a>
+
+                        <span class="mx-2 fw-bold">@item.Quantity</span>
+
+                        <a asp-action="Increase"
+                           asp-route-id="@item.ProductId"
+                           class="btn btn-dark btn-sm qty-btn">+</a>
+
+                        <span class="mx-2">@item.Quantity</span>
+
+                    </td>
+                    <td>@(item.Price * item.Quantity) ₺</td>
+                    <td>
+                        <a asp-action="Remove"
+                           asp-route-id="@item.ProductId"
+                           class="btn btn-outline-danger btn-sm">
+                            Sil
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h4>
+        Genel Toplam:
+        @Model.Sum(x => x.Price * x.Quantity) ₺
+
+        @if (Model.Any())
+        {
+            <a class="btn btn-dark btn-smooth mt-3" asp-controller="Checkout" asp-action="Index">
+                Checkout →
+            </a>
+        }
+
+    </h4>
+}

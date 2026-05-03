@@ -1,0 +1,264 @@
+﻿@model IEnumerable<myhijyenProje.Models.Product>
+
+@{
+    ViewData["Title"] = "Mağaza";
+    int? activeId = ViewBag.ActiveCategoryId as int?;
+    string q = ViewBag.SearchQuery as string ?? "";
+    var categories = ViewBag.Categories as IEnumerable<myhijyenProje.Models.CategoryChipVM>
+                     ?? Enumerable.Empty<myhijyenProje.Models.CategoryChipVM>();
+}
+
+<section class="hero-banner mb-5">
+    <a href="#productsArea">
+        <img src="/images/Banner.png" alt="My Hijyen Banner" class="hero-banner-img" />
+    </a>
+</section>
+
+<div class="row g-4">
+    <div class="col-md-3">
+
+        <button class="btn btn-outline-dark w-100 d-md-none mb-2"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#categoryCollapse">
+            Kategoriler
+        </button>
+
+        <div class="collapse d-md-block" id="categoryCollapse">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">Kategoriler</h6>
+
+                    <a class="cat-link @(activeId == null ? "cat-active" : "")"
+                       asp-controller="Store" asp-action="Index"
+                       asp-route-categoryId="" asp-route-q="@q">
+                        Tümü
+                        <span class="cat-count"></span>
+                    </a>
+
+                    @foreach (var cat in categories)
+                    {
+                        <a class="cat-link @(activeId == cat.Id ? "cat-active" : "")"
+                           asp-controller="Store" asp-action="Index"
+                           asp-route-categoryId="@cat.Id" asp-route-q="@q">
+                            @cat.Name
+                            <span class="cat-count">(@cat.Count)</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-md-9">
+
+        <form method="get" asp-controller="Store" asp-action="Index" class="mb-3">
+            <input type="hidden" name="categoryId" value="@(activeId?.ToString() ?? "")" />
+            <div class="input-group">
+                <input name="q" value="@q" class="form-control" placeholder="Ürün ara..." />
+                <button class="btn btn-dark" type="submit">Ara</button>
+            </div>
+        </form>
+
+        <div id="skeletonGrid" class="row skeleton-grid mb-3">
+            @for (int i = 0; i < 8; i++)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="skeleton-card">
+                        <div class="skeleton-img"></div>
+                        <div class="skeleton-body text-center">
+                            <div class="skeleton-line medium"></div>
+                            <div class="skeleton-line short"></div>
+                            <div class="skeleton-btn"></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div id="productsArea" class="row shop-grid">
+            @foreach (var item in Model)
+            {
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card product-card h-100">
+
+                        <a asp-controller="Store" asp-action="Details" asp-route-id="@item.Id"
+                           style="text-decoration:none; color:inherit;">
+                            <div class="product-media">
+                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                {
+                                    <img src="@item.ImageUrl" alt="@item.Name" />
+                                }
+                            </div>
+                        </a>
+
+                        <div class="hover-preview">
+                            <div class="hover-preview-title">Hızlı Önizleme</div>
+
+                            <p class="hover-preview-text">
+                                @if (!string.IsNullOrWhiteSpace(item.Description))
+                                {
+                                    @(item.Description.Length > 75
+                                        ? item.Description.Substring(0, 75) + "..."
+                                        : item.Description)
+                                }
+                                else
+                                {
+                                    <text>Ürün detaylarını görmek için tıklayın.</text>
+                                }
+                            </p>
+                        </div>
+
+                        <div class="card-body text-center">
+                            <a asp-controller="Store" asp-action="Details" asp-route-id="@item.Id"
+                               style="text-decoration:none; color:inherit;">
+                                <h6 class="fw-bold mb-1">@item.Name</h6>
+                            </a>
+
+                            <div class="text-muted mb-2">@item.Price ₺</div>
+
+                            <div class="d-flex justify-content-center gap-2">
+                                <button type="button"
+                                        class="btn btn-outline-dark btn-sm btn-smooth"
+                                        onclick="openQuickView(@item.Id)">
+                                    Hızlı Bak
+                                </button>
+
+                                <form asp-controller="Cart"
+                                      asp-action="AddToCart"
+                                      method="post"
+                                      class="add-to-cart-form">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="btn btn-dark btn-sm btn-smooth">
+                                        🛒
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            }
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="alert alert-light border mt-3">Ürün bulunamadı.</div>
+        }
+    </div>
+</div>
+
+<!-- QUICK VIEW MODAL -->
+<div class="modal fade" id="quickViewModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0" style="border-radius:16px; overflow:hidden;">
+            <div class="modal-header">
+                <h5 class="modal-title" id="qvTitle">Ürün</h5>
+                <button type="button" class="btn-close" onclick="closeQuickView()"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row g-4">
+                    <div class="col-md-5">
+                        <div style="background:#f6f7f8;height:280px;display:flex;align-items:center;justify-content:center;border-radius:14px;">
+                            <img id="qvImg" src="" alt="" style="max-width:100%;max-height:100%;object-fit:contain;" />
+                        </div>
+                    </div>
+
+                    <div class="col-md-7">
+                        <div class="text-muted mb-1" id="qvCategory"></div>
+                        <div class="fs-4 fw-bold mb-2" id="qvPrice"></div>
+                        <div class="mb-2" id="qvDesc"></div>
+                        <div class="small text-muted" style="white-space:pre-line;" id="qvDetails"></div>
+
+                        <div class="d-flex gap-2 mt-3">
+                            <a id="qvDetailLink" class="btn btn-outline-dark btn-smooth" href="#">Detaya Git</a>
+
+                            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="add-to-cart-form">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" id="qvAddId" value="" />
+                                <button type="submit" class="btn btn-dark btn-smooth">🛒 Sepete Ekle</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let quickViewModalInstance = null;
+
+        async function openQuickView(id) {
+            const res = await fetch(`/Store/QuickView/${id}`);
+            if (!res.ok) return;
+
+            const p = await res.json();
+
+            document.getElementById("qvTitle").innerText = p.name ?? "Ürün";
+            document.getElementById("qvImg").src = p.imageUrl ?? "";
+            document.getElementById("qvImg").alt = p.name ?? "";
+            document.getElementById("qvCategory").innerText = p.categoryName ? `Kategori: ${p.categoryName}` : "";
+            document.getElementById("qvPrice").innerText = `${p.price} ₺`;
+            document.getElementById("qvDesc").innerText = p.description ?? "";
+            document.getElementById("qvDetails").innerText = p.details ?? "";
+            document.getElementById("qvDetailLink").href = `/Store/Details/${p.id}`;
+            document.getElementById("qvAddId").value = p.id;
+
+            const modalEl = document.getElementById("quickViewModal");
+
+            quickViewModalInstance = bootstrap.Modal.getOrCreateInstance(modalEl, {
+                backdrop: false,
+                keyboard: true
+            });
+
+            quickViewModalInstance.show();
+        }
+
+        function closeQuickView() {
+            const modalEl = document.getElementById("quickViewModal");
+            const modal = bootstrap.Modal.getInstance(modalEl);
+
+            if (modal) {
+                modal.hide();
+            }
+
+            document.body.classList.remove("modal-open");
+            document.body.style.overflow = "";
+            document.body.style.paddingRight = "";
+
+            document.querySelectorAll(".modal-backdrop").forEach(x => x.remove());
+        }
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                closeQuickView();
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const skeleton = document.getElementById("skeletonGrid");
+            const products = document.getElementById("productsArea");
+
+            if (skeleton && products) {
+                skeleton.style.display = "flex";
+                products.style.opacity = "0";
+
+                setTimeout(() => {
+                    skeleton.style.display = "none";
+                    products.style.opacity = "1";
+                    products.style.transition = "opacity .25s ease";
+                }, 450);
+            }
+        });
+    </script>
+
+}
+}

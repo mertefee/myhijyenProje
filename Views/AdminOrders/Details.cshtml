@@ -1,0 +1,52 @@
+﻿@model myhijyenProje.Models.Order
+
+<h2>Sipariş Detayı #@Model.Id</h2>
+
+<div class="card border-0 shadow-sm p-3 mb-3" style="border-radius:14px;">
+    <div><strong>Müşteri:</strong> @Model.FullName</div>
+    <div><strong>Telefon:</strong> @Model.Phone</div>
+    <div><strong>Adres:</strong> @Model.Address</div>
+    @if (!string.IsNullOrWhiteSpace(Model.Note))
+    {
+        <div><strong>Not:</strong> @Model.Note</div>
+    }
+    <div class="mt-2"><strong>Toplam:</strong> @Model.Total ₺</div>
+    <div><strong>Durum:</strong> <span class="badge bg-secondary">@Model.Status</span></div>
+</div>
+
+<h5>Ürünler</h5>
+<table class="table align-middle">
+    <thead>
+        <tr>
+            <th>Ürün</th>
+            <th>Fiyat</th>
+            <th>Adet</th>
+            <th>Satır</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var i in Model.Items)
+        {
+            <tr>
+                <td>@i.ProductName</td>
+                <td>@i.UnitPrice ₺</td>
+                <td>@i.Quantity</td>
+                <td>@(i.UnitPrice * i.Quantity) ₺</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<form asp-action="UpdateStatus" method="post" class="d-flex gap-2">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.Id" />
+
+    <select name="status" class="form-select" style="max-width:220px;">
+        <option value="Hazırlanıyor" selected="@(Model.Status=="Hazırlanıyor")">Hazırlanıyor</option>
+        <option value="Kargoda" selected="@(Model.Status=="Kargoda")">Kargoda</option>
+        <option value="Teslim" selected="@(Model.Status=="Teslim")">Teslim</option>
+        <option value="İptal" selected="@(Model.Status=="İptal")">İptal</option>
+    </select>
+
+    <button class="btn btn-dark btn-smooth" type="submit">Durumu Güncelle</button>
+</form>

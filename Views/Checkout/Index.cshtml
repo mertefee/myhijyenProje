@@ -1,0 +1,33 @@
+﻿@{
+    ViewData["Title"] = "Checkout";
+}
+
+<h2 class="mb-3">Teslimat Bilgileri</h2>
+
+<div asp-validation-summary="All" class="text-danger mb-2"></div>
+
+<form asp-action="PlaceOrder" method="post" class="card shadow-sm border-0 p-3" style="border-radius:14px;">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label class="form-label">Ad Soyad</label>
+        <input name="fullName" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Telefon</label>
+        <input name="phone" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Adres</label>
+        <textarea name="address" class="form-control" rows="4"></textarea>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Not (opsiyonel)</label>
+        <textarea name="note" class="form-control" rows="2"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-dark btn-smooth">Siparişi Oluştur</button>
+</form>

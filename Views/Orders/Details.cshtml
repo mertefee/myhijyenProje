@@ -1,0 +1,33 @@
+﻿@model myhijyenProje.Models.Order
+
+<h2>Sipariş Detayı #@Model.Id</h2>
+
+<div class="card shadow-sm border-0 p-3 mb-3" style="border-radius:14px;">
+    <div><strong>Ad:</strong> @Model.FullName</div>
+    <div><strong>Telefon:</strong> @Model.Phone</div>
+    <div><strong>Adres:</strong> @Model.Address</div>
+    <div><strong>Durum:</strong> @Model.Status</div>
+    <div class="mt-2"><strong>Toplam:</strong> @Model.Total ₺</div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Ürün</th>
+            <th>Fiyat</th>
+            <th>Adet</th>
+            <th>Toplam</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var i in Model.Items)
+        {
+            <tr>
+                <td>@i.ProductName</td>
+                <td>@i.UnitPrice ₺</td>
+                <td>@i.Quantity</td>
+                <td>@(i.UnitPrice * i.Quantity) ₺</td>
+            </tr>
+        }
+    </tbody>
+</table>

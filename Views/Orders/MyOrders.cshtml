@@ -1,0 +1,43 @@
+﻿@model IEnumerable<myhijyenProje.Models.Order>
+
+<h2>Siparişlerim</h2>
+
+@if (!Model.Any())
+{
+    <div class="empty-state">
+        <div class="empty-state-icon">📦</div>
+        <h4>Henüz siparişin yok</h4>
+        <p class="text-muted">İlk siparişini oluşturmak için mağazaya göz at.</p>
+        <a href="/Store" class="btn btn-dark mt-2">Mağazaya Git</a>
+    </div>
+}
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Tarih</th>
+                <th>Toplam</th>
+                <th>Durum</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var o in Model)
+            {
+                <tr>
+                    <td>#@o.Id</td>
+                    <td>@o.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                    <td>@o.Total ₺</td>
+                    <td><span class="badge bg-secondary">@o.Status</span></td>
+                    <td>
+                        <a class="btn btn-sm btn-dark"
+                           asp-action="Details"
+                           asp-route-id="@o.Id">Detay</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

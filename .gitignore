@@ -1,0 +1,37 @@
+## Visual Studio
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## ASP.NET
+appsettings.Development.json
+
+## Logs
+*.log
+
+## Database
+*.mdf
+*.ldf
+
+## Rider
+.idea/
+
+## OS
+.DS_Store
+Thumbs.db
+
+## NuGet
+packages/
+*.nupkg
+
+## Build
+[Bb]uild/
+[Dd]ebug/
+[Rr]elease/
+
+## Secrets
+secrets.json

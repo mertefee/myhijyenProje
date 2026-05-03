@@ -1,0 +1,162 @@
+﻿@using Newtonsoft.Json
+@using myhijyenProje.Models
+
+@{
+    var cartJson = Context.Session.GetString("Cart");
+    var cart = string.IsNullOrEmpty(cartJson)
+        ? new List<CartItem>()
+        : (JsonConvert.DeserializeObject<List<CartItem>>(cartJson) ?? new List<CartItem>());
+
+    var cartCount = cart.Sum(x => x.Quantity);
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - myhijyenProje</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+
+<body>
+    <div id="pageLoader">
+        <div class="loader-circle"></div>
+    </div>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
+            <div class="container">
+
+                <a class="navbar-brand fw-bold" href="/Store">myhijyen</a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+                        <li class="nav-item">
+                            <a class="nav-link" href="/Store">Mağaza</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center gap-2"
+                               href="javascript:void(0)"
+                               onclick="openCartPanel()">
+                                Sepetim
+                                <span id="cartBadge"
+                                      class="badge bg-danger badge-cart"
+                                      style="display:@(cartCount>0 ? "inline-block" : "none");">
+                                    @cartCount
+                                </span>
+                            </a>
+                        </li>
+
+                        @if (User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Orders" asp-action="MyOrders">
+                                    Siparişlerim
+                                </a>
+                            </li>
+                        }
+
+
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="AdminOrders" asp-action="Index">Siparişler</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Products" asp-action="Index">Products</a>
+                            </li>
+
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Categories" asp-action="Index">Categories</a>
+                            </li>
+                        }
+
+                    </ul>
+
+                    <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                        <partial name="_LoginPartial" />
+                    </ul>
+                </div>
+
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="pb-3 page-enter">
+        <div class="container mt-4">
+            @RenderBody()
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+            <div>
+                <strong>myhijyenProje</strong> © @DateTime.Now.Year
+            </div>
+            <div class="small">
+                Güvenli alışveriş · Hızlı teslimat · Kurumsal hijyen ürünleri
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080;">
+        <div id="appToast" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div id="appToastMessage" class="toast-body">Mesaj</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    @RenderSection("Scripts", required: false)
+
+    <!-- CART SLIDE PANEL -->
+    <div id="cartOverlay" class="cart-overlay" onclick="closeCartPanel()"></div>
+
+    <div id="cartPanel" class="cart-panel">
+        <div class="cart-panel-header">
+            <h5 class="mb-0">Sepetim</h5>
+            <button type="button" class="btn-close" onclick="closeCartPanel()"></button>
+        </div>
+
+        <div id="cartPanelBody" class="cart-panel-body">
+            <div class="text-muted">Sepet yükleniyor...</div>
+        </div>
+
+        <div class="cart-panel-footer">
+            <div class="d-flex justify-content-between fw-bold mb-3">
+                <span>Toplam</span>
+                <span id="cartPanelTotal">0 ₺</span>
+            </div>
+
+            <a asp-controller="Cart"
+               asp-action="Index"
+               class="btn btn-outline-dark w-100 mb-2">
+                Sepeti Gör
+            </a>
+
+            <a asp-controller="Checkout"
+               asp-action="Index"
+               class="btn btn-dark w-100">
+                Checkout
+            </a>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,27 @@
+﻿@model IEnumerable<myhijyenProje.Models.Category>
+
+<h2>Kategoriler</h2>
+
+<p>
+    <a class="btn btn-primary" href="/Categories/Create">+ Yeni Kategori</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Ad</th>
+            <th style="width:160px;">İşlem</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.Name</td>
+                <td>
+                    <a class="btn btn-sm btn-warning" href="/Categories/Edit/@c.Id">Düzenle</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
