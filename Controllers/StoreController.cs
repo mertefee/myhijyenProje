@@ -2,36 +2,45 @@
 using Microsoft.EntityFrameworkCore;
 using myhijyenProje.Data;
 using myhijyenProje.Models;
+using myhijyenProje.Services;
 
 namespace myhijyenProje.Controllers
 {
     public class StoreController : Controller
     {
         private readonly ApplicationDbContext _context;
-        public StoreController(ApplicationDbContext context) => _context = context;
+        private readonly CorporateDiscountService _discountService;
 
-        // /Store?categoryId=2&q=xxx
-        public IActionResult Index(int? categoryId, string? q)
+        public StoreController(
+            ApplicationDbContext context,
+            CorporateDiscountService discountService)
+        {
+            _context = context;
+            _discountService = discountService;
+        }
+
+        public async Task<IActionResult> Index(int? categoryId, string? q)
         {
             var productsQuery = _context.Products
                 .Include(p => p.Category)
                 .AsQueryable();
 
             if (categoryId.HasValue)
+            {
                 productsQuery = productsQuery.Where(p => p.CategoryId == categoryId.Value);
+            }
 
             if (!string.IsNullOrWhiteSpace(q))
             {
                 productsQuery = productsQuery.Where(p =>
                     p.Name.Contains(q) ||
                     (p.Description != null && p.Description.Contains(q)) ||
-                    (p.Details != null && p.Details.Contains(q))
-                );
+                    (p.Details != null && p.Details.Contains(q)));
             }
 
-            var products = productsQuery.ToList();
+            var products = await productsQuery.ToListAsync();
 
-            var categories = _context.Categories
+            var categories = await _context.Categories
                 .OrderBy(c => c.Name)
                 .Select(c => new CategoryChipVM
                 {
@@ -39,80 +48,102 @@ namespace myhijyenProje.Controllers
                     Name = c.Name,
                     Count = _context.Products.Count(p => p.CategoryId == c.Id)
                 })
-                .ToList();
+                .ToListAsync();
+
+            var discountRate = await _discountService.GetUserDiscountRateAsync(User);
 
             ViewBag.Categories = categories;
             ViewBag.ActiveCategoryId = categoryId;
             ViewBag.SearchQuery = q ?? "";
+            ViewBag.DiscountRate = discountRate;
 
             return View(products);
         }
 
-        // /Store/Details/5
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
-            var product = _context.Products
-     .Include(p => p.Category)
-     .Include(p => p.Images)
-     .FirstOrDefault(p => p.Id == id);
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.Images)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
-            if (product == null) return NotFound();
+            if (product == null)
+            {
+                return NotFound();
+            }
 
-            var similar = _context.Products
+            var similarProducts = await _context.Products
                 .Where(p => p.CategoryId == product.CategoryId && p.Id != product.Id)
                 .Take(8)
-                .ToList();
+                .ToListAsync();
 
-            var reviews = _context.ProductReviews
+            var reviews = await _context.ProductReviews
                 .Where(r => r.ProductId == id)
                 .OrderByDescending(r => r.CreatedAt)
-                .ToList();
+                .ToListAsync();
 
-            ViewBag.SimilarProducts = similar;
+            var discountRate = await _discountService.GetUserDiscountRateAsync(User);
+            var discountedPrice = await _discountService.ApplyDiscountAsync(product.Price, User);
+
+            ViewBag.SimilarProducts = similarProducts;
             ViewBag.Reviews = reviews;
             ViewBag.AvgRating = reviews.Any() ? reviews.Average(r => r.Rating) : 0;
+            ViewBag.DiscountRate = discountRate;
+            ViewBag.DiscountedPrice = discountedPrice;
 
             return View(product);
         }
 
-        // QuickView JSON
         [HttpGet]
-        public IActionResult QuickView(int id)
+        public async Task<IActionResult> QuickView(int id)
         {
-            var p = _context.Products
-                .Include(x => x.Category)
-                .FirstOrDefault(x => x.Id == id);
+            var product = await _context.Products
+                .Include(p => p.Category)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
-            if (p == null) return NotFound();
+            if (product == null)
+            {
+                return NotFound();
+            }
+
+            var discountRate = await _discountService.GetUserDiscountRateAsync(User);
+            var discountedPrice = await _discountService.ApplyDiscountAsync(product.Price, User);
 
             return Json(new
             {
-                id = p.Id,
-                name = p.Name,
-                price = p.Price,
-                imageUrl = p.ImageUrl,
-                description = p.Description,
-                details = p.Details,
-                categoryName = p.Category != null ? p.Category.Name : null
+                id = product.Id,
+                name = product.Name,
+                originalPrice = product.Price,
+                price = discountedPrice,
+                discountRate = discountRate,
+                hasDiscount = discountRate > 0,
+                imageUrl = product.ImageUrl,
+                description = product.Description,
+                details = product.Details,
+                categoryName = product.Category != null ? product.Category.Name : null
             });
         }
 
-        // Yorum ekleme
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult AddReview(int productId, int rating, string comment)
         {
             if (rating < 1 || rating > 5 || string.IsNullOrWhiteSpace(comment))
+            {
                 return RedirectToAction("Details", new { id = productId });
+            }
 
-            _context.ProductReviews.Add(new ProductReview
+            var review = new ProductReview
             {
                 ProductId = productId,
                 Rating = rating,
-                Comment = comment.Trim()
-            });
+                Comment = comment.Trim(),
+                CreatedAt = DateTime.Now
+            };
 
+            _context.ProductReviews.Add(review);
             _context.SaveChanges();
+
             return RedirectToAction("Details", new { id = productId });
         }
     }

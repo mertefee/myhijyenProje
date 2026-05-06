@@ -1,33 +1,460 @@
-﻿@{
+﻿@using Newtonsoft.Json
+@using myhijyenProje.Models
+
+@{
     ViewData["Title"] = "Checkout";
+
+    var cartJson = Context.Session.GetString("Cart");
+    var cart = string.IsNullOrEmpty(cartJson)
+        ? new List<CartItem>()
+        : (JsonConvert.DeserializeObject<List<CartItem>>(cartJson) ?? new List<CartItem>());
+
+    var subtotal = cart.Sum(x => x.Price * x.Quantity);
+    var shipping = subtotal > 0 ? 0 : 0;
+    var grandTotal = subtotal + shipping;
 }
 
-<h2 class="mb-3">Teslimat Bilgileri</h2>
+<div class="checkout-page">
 
-<div asp-validation-summary="All" class="text-danger mb-2"></div>
+    <div class="checkout-header">
+        <div>
+            <span class="checkout-eyebrow">Güvenli Checkout</span>
+            <h1>Teslimat Bilgileri</h1>
+            <p>Siparişini tamamlamak için teslimat bilgilerini gir.</p>
+        </div>
 
-<form asp-action="PlaceOrder" method="post" class="card shadow-sm border-0 p-3" style="border-radius:14px;">
-    @Html.AntiForgeryToken()
-
-    <div class="mb-3">
-        <label class="form-label">Ad Soyad</label>
-        <input name="fullName" class="form-control" />
+        <a asp-controller="Cart" asp-action="Index" class="btn btn-outline-dark">
+            Sepete Dön
+        </a>
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Telefon</label>
-        <input name="phone" class="form-control" />
-    </div>
+    <div asp-validation-summary="All" class="alert alert-danger validation-box" role="alert"></div>
 
-    <div class="mb-3">
-        <label class="form-label">Adres</label>
-        <textarea name="address" class="form-control" rows="4"></textarea>
-    </div>
+    <div class="checkout-grid">
 
-    <div class="mb-3">
-        <label class="form-label">Not (opsiyonel)</label>
-        <textarea name="note" class="form-control" rows="2"></textarea>
-    </div>
+        <form asp-action="PlaceOrder" method="post" class="checkout-card checkout-form-card">
+            @Html.AntiForgeryToken()
 
-    <button type="submit" class="btn btn-dark btn-smooth">Siparişi Oluştur</button>
-</form>
+            <div class="section-title">
+                <span>1</span>
+                <div>
+                    <h4>Alıcı Bilgileri</h4>
+                    <p>Fatura ve teslimat için gerekli bilgiler.</p>
+                </div>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input name="fullName"
+                       class="form-control checkout-input"
+                       placeholder="Ad Soyad"
+                       autocomplete="name"
+                       required />
+                <label>Ad Soyad</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input name="phone"
+                       class="form-control checkout-input"
+                       placeholder="Telefon"
+                       autocomplete="tel"
+                       required />
+                <label>Telefon</label>
+            </div>
+
+            <div class="form-floating mb-3">
+                <textarea name="address"
+                          class="form-control checkout-input checkout-textarea"
+                          placeholder="Adres"
+                          rows="4"
+                          required></textarea>
+                <label>Adres</label>
+            </div>
+
+            <div class="form-floating mb-4">
+                <textarea name="note"
+                          class="form-control checkout-input checkout-note"
+                          placeholder="Not"></textarea>
+                <label>Not (opsiyonel)</label>
+            </div>
+
+            <div class="checkout-info">
+                <div class="checkout-info-icon">✓</div>
+                <div>
+                    <strong>Bilgilerin güvende</strong>
+                    <p>Sipariş bilgilerin sadece teslimat süreci için kullanılır.</p>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-dark checkout-submit">
+                Siparişi Oluştur
+            </button>
+        </form>
+
+        <aside class="checkout-card order-summary">
+            <div class="section-title">
+                <span>2</span>
+                <div>
+                    <h4>Sipariş Özeti</h4>
+                    <p>Sepetindeki ürünler.</p>
+                </div>
+            </div>
+
+            @if (cart.Any())
+            {
+                <div class="summary-items">
+                    @foreach (var item in cart)
+                    {
+                        <div class="summary-item">
+                            <div>
+                                <strong>@item.ProductName</strong>
+                                <small>@item.Quantity adet</small>
+                            </div>
+
+                            <span>
+                                @((item.Price * item.Quantity).ToString("N2")) TL
+                            </span>
+                        </div>
+                    }
+                </div>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-row">
+                    <span>Ara Toplam</span>
+                    <strong>@subtotal.ToString("N2") TL</strong>
+                </div>
+
+                <div class="summary-row">
+                    <span>Kargo</span>
+                    <strong class="text-success">Ücretsiz</strong>
+                </div>
+
+                <div class="summary-total">
+                    <span>Genel Toplam</span>
+                    <strong>@grandTotal.ToString("N2") TL</strong>
+                </div>
+            }
+            else
+            {
+                <div class="empty-summary">
+                    <h5>Sepetin boş</h5>
+                    <p>Checkout için önce sepete ürün eklemelisin.</p>
+                    <a asp-controller="Store" asp-action="Index" class="btn btn-dark">
+                        Mağazaya Git
+                    </a>
+                </div>
+            }
+        </aside>
+
+    </div>
+</div>
+
+<style>
+    .checkout-page {
+        padding: 20px 0 50px;
+    }
+
+    .checkout-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 20px;
+        margin-bottom: 25px;
+    }
+
+    .checkout-eyebrow {
+        display: inline-block;
+        padding: 7px 13px;
+        border-radius: 999px;
+        background: #111;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .checkout-header h1 {
+        font-weight: 850;
+        margin-bottom: 6px;
+        color: #111;
+    }
+
+    .checkout-header p {
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+
+    .validation-box:empty {
+        display: none;
+    }
+
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1.4fr) minmax(320px, .8fr);
+        gap: 24px;
+        align-items: start;
+    }
+
+    .checkout-card {
+        background: #fff;
+        border: 1px solid rgba(0,0,0,.06);
+        border-radius: 24px;
+        box-shadow: 0 18px 50px rgba(0,0,0,.08);
+    }
+
+    .checkout-form-card {
+        padding: 28px;
+    }
+
+    .order-summary {
+        padding: 24px;
+        position: sticky;
+        top: 90px;
+    }
+
+    .section-title {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 22px;
+    }
+
+        .section-title span {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #111;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .section-title h4 {
+            margin: 0;
+            font-weight: 800;
+            color: #111;
+        }
+
+        .section-title p {
+            margin: 2px 0 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+    .checkout-input {
+        border-radius: 16px;
+        border: 1px solid #dee2e6;
+    }
+
+        .checkout-input:focus {
+            border-color: #111;
+            box-shadow: 0 0 0 .2rem rgba(0,0,0,.08);
+        }
+
+    .checkout-textarea {
+        min-height: 130px !important;
+    }
+
+    .checkout-note {
+        min-height: 90px !important;
+    }
+
+    .checkout-info {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 18px;
+        background: #f7f7f7;
+        margin-bottom: 20px;
+    }
+
+    .checkout-info-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: #111;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 800;
+        flex-shrink: 0;
+    }
+
+    .checkout-info p {
+        margin: 2px 0 0;
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    .checkout-submit {
+        width: 100%;
+        border-radius: 16px;
+        padding: 15px;
+        font-weight: 800;
+        font-size: 17px;
+    }
+
+    .summary-items {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 14px;
+        border-radius: 16px;
+        background: #f8f9fa;
+    }
+
+        .summary-item strong {
+            display: block;
+            color: #111;
+        }
+
+        .summary-item small {
+            color: #6c757d;
+        }
+
+        .summary-item span {
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+    .summary-divider {
+        height: 1px;
+        background: #eee;
+        margin: 20px 0;
+    }
+
+    .summary-row,
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+
+    .summary-total {
+        margin-top: 18px;
+        padding-top: 18px;
+        border-top: 1px solid #eee;
+        font-size: 20px;
+        font-weight: 900;
+    }
+
+    .empty-summary {
+        text-align: center;
+        padding: 25px 10px;
+    }
+
+        .empty-summary h5 {
+            font-weight: 800;
+        }
+
+        .empty-summary p {
+            color: #6c757d;
+        }
+
+    @@media (max-width: 992px) {
+        .checkout-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .order-summary {
+            position: static;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .checkout-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .checkout-form-card,
+        .order-summary {
+            padding: 20px;
+            border-radius: 20px;
+        }
+
+        .checkout-header h1 {
+            font-size: 28px;
+        }
+
+        .summary-item {
+            flex-direction: column;
+        }
+    }
+
+    .checkout-card {
+        transition: transform .25s ease, box-shadow .25s ease;
+    }
+
+        .checkout-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 24px 65px rgba(0,0,0,.12);
+        }
+
+    .summary-item {
+        transition: transform .2s ease, background .2s ease;
+    }
+
+        .summary-item:hover {
+            transform: translateX(4px);
+            background: #f1f1f1;
+        }
+
+    .checkout-submit {
+        position: relative;
+        overflow: hidden;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+
+        .checkout-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px rgba(0,0,0,.18);
+        }
+
+        .checkout-submit:active {
+            transform: scale(.98);
+        }
+
+    .checkout-input {
+        transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    }
+
+        .checkout-input:focus {
+            transform: translateY(-1px);
+        }
+
+    .checkout-info {
+        transition: transform .2s ease;
+    }
+
+        .checkout-info:hover {
+            transform: scale(1.01);
+        }
+
+</style>
+@section Scripts {
+    <script>
+        const checkoutForm = document.querySelector(".checkout-form-card");
+        const checkoutButton = document.querySelector(".checkout-submit");
+
+        if (checkoutForm && checkoutButton) {
+            checkoutForm.addEventListener("submit", function () {
+                checkoutButton.disabled = true;
+                checkoutButton.innerHTML = `
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Sipariş oluşturuluyor...
+                `;
+            });
+        }
+    </script>
+}

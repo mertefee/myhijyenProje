@@ -37,6 +37,7 @@
                 </button>
 
                 <div class="collapse navbar-collapse" id="mainNavbar">
+
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
                         <li class="nav-item">
@@ -48,6 +49,7 @@
                                href="javascript:void(0)"
                                onclick="openCartPanel()">
                                 Sepetim
+
                                 <span id="cartBadge"
                                       class="badge bg-danger badge-cart"
                                       style="display:@(cartCount > 0 ? "inline-block" : "none");">
@@ -59,7 +61,9 @@
                         @if (User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Orders" asp-action="MyOrders">
+                                <a class="nav-link"
+                                   asp-controller="Orders"
+                                   asp-action="MyOrders">
                                     Siparişlerim
                                 </a>
                             </li>
@@ -68,27 +72,68 @@
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Admin" asp-action="Dashboard">
+                                <a class="nav-link"
+                                   asp-controller="Admin"
+                                   asp-action="Dashboard">
                                     Dashboard
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="AdminOrders" asp-action="Index">
+                                <a class="nav-link"
+                                   asp-controller="AdminOrders"
+                                   asp-action="Index">
                                     Siparişler
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Products" asp-action="Index">
+                                <a class="nav-link"
+                                   asp-controller="Products"
+                                   asp-action="Index">
                                     Products
                                 </a>
                             </li>
 
                             <li class="nav-item">
-                                <a class="nav-link" asp-controller="Categories" asp-action="Index">
+                                <a class="nav-link"
+                                   asp-controller="Categories"
+                                   asp-action="Index">
                                     Categories
                                 </a>
+                            </li>
+
+                            <!-- 🔥 YENİ ADMIN DROPDOWN -->
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle"
+                                   href="#"
+                                   id="corporateDropdown"
+                                   role="button"
+                                   data-bs-toggle="dropdown"
+                                   aria-expanded="false">
+                                    Corporate
+                                </a>
+
+                                <ul class="dropdown-menu shadow-sm border-0"
+                                    aria-labelledby="corporateDropdown">
+
+                                    <li>
+                                        <a class="dropdown-item"
+                                           asp-controller="CorporateDiscountRules"
+                                           asp-action="Index">
+                                            Kurumsal İndirimler
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item"
+                                           asp-controller="CorporateUsers"
+                                           asp-action="Index">
+                                            Kullanıcı Onayları
+                                        </a>
+                                    </li>
+
+                                </ul>
                             </li>
                         }
 
@@ -97,6 +142,7 @@
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                         <partial name="_LoginPartial" />
                     </ul>
+
                 </div>
 
             </div>
@@ -114,6 +160,7 @@
             <div>
                 <strong>myhijyenProje</strong> © @DateTime.Now.Year
             </div>
+
             <div class="small">
                 Güvenli alışveriş · Hızlı teslimat · Kurumsal hijyen ürünleri
             </div>
@@ -121,27 +168,50 @@
     </footer>
 
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:1080;">
-        <div id="appToast" class="toast align-items-center text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div id="appToast"
+             class="toast align-items-center text-bg-dark border-0"
+             role="alert"
+             aria-live="assertive"
+             aria-atomic="true">
+
             <div class="d-flex">
-                <div id="appToastMessage" class="toast-body">Mesaj</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                <div id="appToastMessage" class="toast-body">
+                    Mesaj
+                </div>
+
+                <button type="button"
+                        class="btn-close btn-close-white me-2 m-auto"
+                        data-bs-dismiss="toast">
+                </button>
             </div>
+
         </div>
     </div>
 
-    <div id="cartOverlay" class="cart-overlay" onclick="closeCartPanel()"></div>
+    <div id="cartOverlay"
+         class="cart-overlay"
+         onclick="closeCartPanel()">
+    </div>
 
     <div id="cartPanel" class="cart-panel">
+
         <div class="cart-panel-header">
             <h5 class="mb-0">Sepetim</h5>
-            <button type="button" class="btn-close" onclick="closeCartPanel()"></button>
+
+            <button type="button"
+                    class="btn-close"
+                    onclick="closeCartPanel()">
+            </button>
         </div>
 
         <div id="cartPanelBody" class="cart-panel-body">
-            <div class="text-muted">Sepet yükleniyor...</div>
+            <div class="text-muted">
+                Sepet yükleniyor...
+            </div>
         </div>
 
         <div class="cart-panel-footer">
+
             <div class="d-flex justify-content-between fw-bold mb-3">
                 <span>Toplam</span>
                 <span id="cartPanelTotal">0 ₺</span>
@@ -158,11 +228,15 @@
                class="btn btn-dark w-100">
                 Checkout
             </a>
+
         </div>
+
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @RenderSection("Scripts", required: false)

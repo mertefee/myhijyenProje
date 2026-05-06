@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using myhijyenProje.Data;
 using myhijyenProje.Models;
+using myhijyenProje.Services;
 using Newtonsoft.Json;
 
 namespace myhijyenProje.Controllers
@@ -11,12 +12,17 @@ namespace myhijyenProje.Controllers
     public class CheckoutController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly CorporateDiscountService _discountService;
 
-        public CheckoutController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public CheckoutController(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            CorporateDiscountService discountService)
         {
             _context = context;
             _userManager = userManager;
+            _discountService = discountService;
         }
 
         public IActionResult Index()
@@ -59,7 +65,7 @@ namespace myhijyenProje.Controllers
 
             foreach (var c in cart)
             {
-                var product = _context.Products.Find(c.ProductId);
+                var product = await _context.Products.FindAsync(c.ProductId);
 
                 if (product == null)
                     return RedirectToAction("Index", "Cart");
@@ -70,13 +76,15 @@ namespace myhijyenProje.Controllers
                     return View("Index");
                 }
 
+                var finalPrice = await _discountService.ApplyDiscountAsync(product.Price, User);
+
                 product.Stock -= c.Quantity;
 
                 order.Items.Add(new OrderItem
                 {
                     ProductId = c.ProductId,
-                    ProductName = c.ProductName,
-                    UnitPrice = c.Price,
+                    ProductName = product.Name,
+                    UnitPrice = finalPrice,
                     Quantity = c.Quantity
                 });
             }

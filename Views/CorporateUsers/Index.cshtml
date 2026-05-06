@@ -1,0 +1,61 @@
+﻿@model IEnumerable<myhijyenProje.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Kurumsal Kullanıcı Onayları";
+}
+
+<h2>Kurumsal Kullanıcı Onayları</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>E-Posta</th>
+            <th>Kurumsal Domain</th>
+            <th>Durum</th>
+            <th>Onay Tarihi</th>
+            <th>Onaylayan</th>
+            <th style="width:220px;">İşlem</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@user.Email</td>
+                <td>@user.CorporateEmailDomain</td>
+                <td>
+                    @if (user.IsCorporateApproved)
+                    {
+                        <span class="badge bg-success">Onaylı</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-warning text-dark">Onay Bekliyor</span>
+                    }
+                </td>
+                <td>
+                    @(user.CorporateApprovedAt.HasValue
+                        ? user.CorporateApprovedAt.Value.ToString("dd.MM.yyyy HH:mm")
+                        : "-")
+                </td>
+                <td>@(user.CorporateApprovedBy ?? "-")</td>
+                <td>
+                    @if (!user.IsCorporateApproved)
+                    {
+                        <form asp-action="Approve" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@user.Id" />
+                            <button type="submit" class="btn btn-sm btn-success">Onayla</button>
+                        </form>
+                    }
+
+                    <form asp-action="Reject" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@user.Id" />
+                        <button type="submit" class="btn btn-sm btn-danger">Onayı Kaldır</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

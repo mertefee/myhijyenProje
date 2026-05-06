@@ -1,0 +1,38 @@
+﻿@model myhijyenProje.Models.CorporateDiscountRule
+
+@{
+    ViewData["Title"] = "Kurumsal İndirim Ekle";
+}
+
+<h2>Kurumsal İndirim Ekle</h2>
+
+<form asp-action="Create" method="post">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="form-group mb-3">
+        <label asp-for="EmailDomain"></label>
+        <input asp-for="EmailDomain" class="form-control" placeholder="@@espressolab.com" />
+        <span asp-validation-for="EmailDomain" class="text-danger"></span>
+    </div>
+
+    <div class="form-group mb-3">
+        <label asp-for="DiscountPercentage"></label>
+        <input asp-for="DiscountPercentage" class="form-control" placeholder="10" />
+        <span asp-validation-for="DiscountPercentage" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="RequiresAdminApproval" class="form-check-input" />
+        <label asp-for="RequiresAdminApproval" class="form-check-label"></label>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="IsActive" class="form-check-input" />
+        <label asp-for="IsActive" class="form-check-label"></label>
+    </div>
+
+    <button type="submit" class="btn btn-success">Kaydet</button>
+    <a asp-action="Index" class="btn btn-secondary">Geri Dön</a>
+</form>

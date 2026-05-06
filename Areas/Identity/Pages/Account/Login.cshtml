@@ -1,0 +1,154 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Giriş Yap";
+}
+
+<div class="auth-page">
+    <div class="auth-card">
+
+        <div class="auth-image-side">
+            <img src="~/images/Login&Register.png" alt="Login görseli" />
+        </div>
+
+        <div class="auth-form-side">
+            <form id="account" method="post">
+                <h2>Giriş Yap</h2>
+                <p class="text-muted mb-4">Devam etmek için hesabına giriş yap.</p>
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Email"
+                           class="form-control"
+                           autocomplete="username"
+                           placeholder="E-posta" />
+                    <label asp-for="Input.Email">E-posta</label>
+                    <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input asp-for="Input.Password"
+                           class="form-control"
+                           autocomplete="current-password"
+                           placeholder="Şifre" />
+                    <label asp-for="Input.Password">Şifre</label>
+                    <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input asp-for="Input.RememberMe" class="form-check-input" />
+                    <label asp-for="Input.RememberMe" class="form-check-label">Beni hatırla</label>
+                </div>
+
+                <button type="submit" class="btn btn-dark btn-lg w-100">
+                    Giriş Yap
+                </button>
+
+                <div class="text-center mt-4">
+                    <span class="text-muted">Hesabın yok mu?</span>
+                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl">
+                        Kayıt ol
+                    </a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .auth-page {
+        min-height: calc(100vh - 180px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 15px;
+        background: #f7f7f7;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 980px;
+        min-height: 560px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        background: #fff;
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: 0 25px 70px rgba(0,0,0,.12);
+    }
+
+    .auth-image-side {
+        background: #111;
+        overflow: hidden;
+    }
+
+        .auth-image-side img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .auth-form-side {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 55px;
+    }
+
+        .auth-form-side form {
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .auth-form-side h2 {
+            font-weight: 800;
+            color: #111;
+        }
+
+    .form-control {
+        border-radius: 14px;
+    }
+
+    .btn {
+        border-radius: 14px;
+        font-weight: 700;
+    }
+
+    .auth-form-side a {
+        color: #111;
+        font-weight: 700;
+        text-decoration: none;
+        margin-left: 5px;
+    }
+
+        .auth-form-side a:hover {
+            text-decoration: underline;
+        }
+
+    @@media (max-width: 768px) {
+        .auth-card {
+            grid-template-columns: 1fr;
+        }
+
+        .auth-image-side {
+            padding: 25px;
+            min-height: 260px;
+        }
+
+        .auth-form-side {
+            padding: 35px 25px;
+        }
+    }
+
+    .auth-image-side img {
+        filter: brightness(.92);
+    }
+
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
