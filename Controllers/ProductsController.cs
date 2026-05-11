@@ -17,10 +17,55 @@ namespace myhijyenProje.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? search, int? categoryId, string? stockStatus)
         {
-            var products = _context.Products.Include(p => p.Category);
-            return View(await products.ToListAsync());
+            var query = _context.Products
+                .Include(p => p.Category)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                query = query.Where(p =>
+                    p.Name.Contains(search) ||
+                    (p.Description != null && p.Description.Contains(search)));
+            }
+
+            if (categoryId.HasValue && categoryId.Value > 0)
+            {
+                query = query.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(stockStatus))
+            {
+                if (stockStatus == "inStock")
+                {
+                    query = query.Where(p => p.Stock > 5);
+                }
+                else if (stockStatus == "lowStock")
+                {
+                    query = query.Where(p => p.Stock > 0 && p.Stock <= 5);
+                }
+                else if (stockStatus == "outOfStock")
+                {
+                    query = query.Where(p => p.Stock <= 0);
+                }
+            }
+
+            ViewBag.Search = search;
+            ViewBag.StockStatus = stockStatus;
+
+            ViewBag.CategoryId = new SelectList(
+                await _context.Categories.OrderBy(c => c.Name).ToListAsync(),
+                "Id",
+                "Name",
+                categoryId
+            );
+
+            var products = await query
+                .OrderByDescending(p => p.Id)
+                .ToListAsync();
+
+            return View(products);
         }
 
         public async Task<IActionResult> Details(int? id)
@@ -54,6 +99,18 @@ namespace myhijyenProje.Controllers
                     var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
                     var maxFileSize = 5 * 1024 * 1024;
 
+                    var uploadsFolder = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot",
+                        "images",
+                        "products"
+                    );
+
+                    if (!Directory.Exists(uploadsFolder))
+                    {
+                        Directory.CreateDirectory(uploadsFolder);
+                    }
+
                     foreach (var file in imageFiles)
                     {
                         if (file.Length > 0)
@@ -75,7 +132,7 @@ namespace myhijyenProje.Controllers
                             }
 
                             var fileName = Guid.NewGuid() + extension;
-                            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/products", fileName);
+                            var path = Path.Combine(uploadsFolder, fileName);
 
                             using (var stream = new FileStream(path, FileMode.Create))
                             {
@@ -89,7 +146,10 @@ namespace myhijyenProje.Controllers
                         }
                     }
 
-                    product.ImageUrl = product.Images.First().ImageUrl;
+                    if (product.Images.Any())
+                    {
+                        product.ImageUrl = product.Images.First().ImageUrl;
+                    }
                 }
 
                 _context.Add(product);
@@ -150,6 +210,18 @@ namespace myhijyenProje.Controllers
                 var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".webp" };
                 var maxFileSize = 5 * 1024 * 1024;
 
+                var uploadsFolder = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "images",
+                    "products"
+                );
+
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
                 foreach (var file in imageFiles)
                 {
                     if (file.Length > 0)
@@ -171,7 +243,7 @@ namespace myhijyenProje.Controllers
                         }
 
                         var fileName = Guid.NewGuid() + extension;
-                        var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images/products", fileName);
+                        var path = Path.Combine(uploadsFolder, fileName);
 
                         using (var stream = new FileStream(path, FileMode.Create))
                         {

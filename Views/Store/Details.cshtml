@@ -3,44 +3,82 @@
 @{
     ViewData["Title"] = Model.Name;
 
-    decimal discountRate = 0;
-    decimal discountedPrice = Model.Price;
+    var productImages = Model.Images != null && Model.Images.Any()
+        ? Model.Images.ToList()
+        : new List<myhijyenProje.Models.ProductImage>();
 
-    if (ViewBag.DiscountRate != null)
-    {
-        discountRate = Convert.ToDecimal(ViewBag.DiscountRate);
-    }
-
-    if (ViewBag.DiscountedPrice != null)
-    {
-        discountedPrice = Convert.ToDecimal(ViewBag.DiscountedPrice);
-    }
-
-    var reviews = ViewBag.Reviews as List<myhijyenProje.Models.ProductReview>;
-    var similarProducts = ViewBag.SimilarProducts as List<myhijyenProje.Models.Product>;
+    var mainImage = productImages.FirstOrDefault()?.ImageUrl
+        ?? Model.ImageUrl
+        ?? "/images/no-image.png";
 }
 
-<div class="container mt-4">
+<div class="container mt-4 mb-5">
 
     <div class="row">
         <div class="col-md-6">
-            <img src="@Model.ImageUrl"
-                 class="img-fluid rounded shadow-sm mb-3"
-                 alt="@Model.Name" />
 
-            @if (Model.Images != null && Model.Images.Any())
-            {
-                <div class="row">
-                    @foreach (var image in Model.Images)
+            <div id="productImageCarousel" class="carousel slide product-carousel" data-bs-ride="false">
+
+                <div class="carousel-inner product-carousel-inner shadow-sm rounded">
+
+                    @if (productImages.Any())
                     {
-                        <div class="col-3 mb-2">
-                            <img src="@image.ImageUrl"
-                                 class="img-fluid rounded border"
+                        for (int i = 0; i < productImages.Count; i++)
+                        {
+                            <div class="carousel-item @(i == 0 ? "active" : "")">
+                                <img src="@productImages[i].ImageUrl"
+                                     class="d-block w-100 product-main-image"
+                                     alt="@Model.Name" />
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="carousel-item active">
+                            <img src="@mainImage"
+                                 class="d-block w-100 product-main-image"
                                  alt="@Model.Name" />
                         </div>
                     }
+
+                </div>
+
+                @if (productImages.Count > 1)
+                {
+                    <button class="carousel-control-prev custom-carousel-btn"
+                            type="button"
+                            data-bs-target="#productImageCarousel"
+                            data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon custom-carousel-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Önceki</span>
+                    </button>
+
+                    <button class="carousel-control-next custom-carousel-btn"
+                            type="button"
+                            data-bs-target="#productImageCarousel"
+                            data-bs-slide="next">
+                        <span class="carousel-control-next-icon custom-carousel-icon" aria-hidden="true"></span>
+                        <span class="visually-hidden">Sonraki</span>
+                    </button>
+                }
+            </div>
+
+            @if (productImages.Count > 1)
+            {
+                <div class="d-flex gap-2 mt-3 flex-wrap">
+                    @for (int i = 0; i < productImages.Count; i++)
+                    {
+                        <button type="button"
+                                data-bs-target="#productImageCarousel"
+                                data-bs-slide-to="@i"
+                                class="product-thumbnail @(i == 0 ? "active-thumbnail" : "")">
+                            <img src="@productImages[i].ImageUrl"
+                                 alt="@Model.Name" />
+                        </button>
+                    }
                 </div>
             }
+
         </div>
 
         <div class="col-md-6">
@@ -51,30 +89,12 @@
                 <p class="text-muted">@Model.Category.Name</p>
             }
 
-            @if (discountRate > 0)
+            <h3 class="mt-4">@Model.Price.ToString("N2") TL</h3>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Description))
             {
-                <div class="mb-3">
-                    <span class="text-muted text-decoration-line-through fs-5">
-                        @Model.Price.ToString("N2") TL
-                    </span>
-
-                    <strong class="text-success fs-2 d-block">
-                        @discountedPrice.ToString("N2") TL
-                    </strong>
-
-                    <span class="badge bg-success fs-6">
-                        %@discountRate Kurumsal İndirim
-                    </span>
-                </div>
+                <p class="mt-4">@Model.Description</p>
             }
-            else
-            {
-                <strong class="fs-2 d-block mb-3">
-                    @Model.Price.ToString("N2") TL
-                </strong>
-            }
-
-            <p>@Model.Description</p>
 
             @if (!string.IsNullOrWhiteSpace(Model.Details))
             {
@@ -93,131 +113,97 @@
 
                 <input type="hidden" name="id" value="@Model.Id" />
 
-                <button type="submit" class="btn btn-dark btn-lg">
+                <button type="submit" class="btn btn-dark btn-lg" @(Model.Stock <= 0 ? "disabled" : "")>
                     Sepete Ekle
                 </button>
             </form>
         </div>
     </div>
 
-    <hr class="my-5" />
+</div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <h4>Yorum Yap</h4>
-
-            <form asp-action="AddReview" method="post">
-                @Html.AntiForgeryToken()
-
-                <input type="hidden" name="productId" value="@Model.Id" />
-
-                <div class="mb-3">
-                    <label class="form-label">Puan</label>
-                    <select name="rating" class="form-select">
-                        <option value="5">5 - Çok iyi</option>
-                        <option value="4">4 - İyi</option>
-                        <option value="3">3 - Orta</option>
-                        <option value="2">2 - Kötü</option>
-                        <option value="1">1 - Çok kötü</option>
-                    </select>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Yorum</label>
-                    <textarea name="comment" class="form-control" rows="4"></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-outline-dark">
-                    Yorumu Gönder
-                </button>
-            </form>
-        </div>
-
-        <div class="col-md-6">
-            <h4>Yorumlar</h4>
-
-            @if (reviews != null && reviews.Any())
-            {
-                foreach (var review in reviews)
-                {
-                    <div class="border rounded p-3 mb-2">
-                        <strong>@review.Rating / 5</strong>
-                        <p class="mb-1">@review.Comment</p>
-                        <small class="text-muted">
-                            @review.CreatedAt.ToString("dd.MM.yyyy HH:mm")
-                        </small>
-                    </div>
-                }
-            }
-            else
-            {
-                <p class="text-muted">Henüz yorum yok.</p>
-            }
-        </div>
-    </div>
-
-    @if (similarProducts != null && similarProducts.Any())
-    {
-        <hr class="my-5" />
-
-        <h4>Benzer Ürünler</h4>
-
-        <div class="row mt-3">
-            @foreach (var product in similarProducts)
-            {
-                decimal similarDiscountedPrice = product.Price;
-
-                if (discountRate > 0)
-                {
-                    similarDiscountedPrice = Math.Round(product.Price - (product.Price * discountRate / 100), 2);
-                }
-
-                <div class="col-md-3 mb-4">
-                    <div class="card h-100 shadow-sm border-0">
-                        <a asp-action="Details" asp-route-id="@product.Id">
-                            <img src="@product.ImageUrl"
-                                 class="card-img-top"
-                                 alt="@product.Name"
-                                 style="height: 200px; object-fit: cover;" />
-                        </a>
-
-                        <div class="card-body">
-                            <h6>@product.Name</h6>
-
-                            @if (discountRate > 0)
-                            {
-                                <span class="text-muted text-decoration-line-through">
-                                    @product.Price.ToString("N2") TL
-                                </span>
-
-                                <strong class="text-success d-block">
-                                    @similarDiscountedPrice.ToString("N2") TL
-                                </strong>
-                            }
-                            else
-                            {
-                                <strong>@product.Price.ToString("N2") TL</strong>
-                            }
-
-                            <a asp-action="Details"
-                               asp-route-id="@product.Id"
-                               class="btn btn-sm btn-outline-dark mt-2">
-                                İncele
-                            </a>
-
-                            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="mt-2">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="id" value="@product.Id" />
-
-                                <button type="submit" class="btn btn-dark btn-sm w-100">
-                                    Sepete Ekle
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
+<style>
+    .product-carousel {
+        width: 100%;
+        max-width: 430px;
+        background: #fff;
     }
 
-</div>
+    .product-carousel-inner {
+        width: 100%;
+        height: 360px;
+        background: #fff;
+        border: 1px solid #eee;
+    }
+
+    .product-main-image {
+        width: 100%;
+        height: 360px;
+        object-fit: contain;
+        padding: 20px;
+        background: #fff;
+    }
+
+    .custom-carousel-btn {
+        width: 42px;
+        height: 42px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0, 0, 0, 0.65);
+        border-radius: 50%;
+        opacity: 1;
+    }
+
+    .carousel-control-prev.custom-carousel-btn {
+        left: 10px;
+    }
+
+    .carousel-control-next.custom-carousel-btn {
+        right: 10px;
+    }
+
+    .custom-carousel-icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .product-thumbnail {
+        width: 95px;
+        height: 95px;
+        border: 1px solid #ddd;
+        background: #fff;
+        border-radius: 8px;
+        padding: 6px;
+        cursor: pointer;
+    }
+
+        .product-thumbnail img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .product-thumbnail:hover,
+        .active-thumbnail {
+            border: 2px solid #212529;
+        }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const carouselElement = document.getElementById("productImageCarousel");
+            const thumbnails = document.querySelectorAll(".product-thumbnail");
+
+            if (carouselElement) {
+                carouselElement.addEventListener("slid.bs.carousel", function (event) {
+                    thumbnails.forEach(x => x.classList.remove("active-thumbnail"));
+
+                    if (thumbnails[event.to]) {
+                        thumbnails[event.to].classList.add("active-thumbnail");
+                    }
+                });
+            }
+        });
+    </script>
+}

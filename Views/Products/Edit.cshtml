@@ -4,115 +4,265 @@
     ViewData["Title"] = "Ürün Düzenle";
 }
 
-<div class="container mt-4">
-    <h2>Ürün Düzenle</h2>
+<div class="container mt-4 mb-5">
 
-    <form asp-action="Edit" method="post" enctype="multipart/form-data">
-        @Html.AntiForgeryToken()
-
-        <input type="hidden" asp-for="Id" />
-        <input type="hidden" asp-for="ImageUrl" />
-
-        <div asp-validation-summary="All" class="text-danger"></div>
-
-        <div class="form-group mb-3">
-            <label>Ürün Adı</label>
-            <input asp-for="Name" class="form-control" />
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Ürün Düzenle</h2>
+            <p class="text-muted mb-0">Ürün bilgilerini ve görsellerini buradan yönetebilirsin.</p>
         </div>
 
-        <div class="form-group mb-3">
-            <label>Açıklama</label>
-            <textarea asp-for="Description" class="form-control" rows="3"></textarea>
-        </div>
-
-        <div class="form-group mb-3">
-            <label>Detay</label>
-            <textarea asp-for="Details" class="form-control" rows="3"></textarea>
-        </div>
-
-        <div class="form-group mb-3">
-            <label>Fiyat</label>
-            <input asp-for="Price" class="form-control" />
-        </div>
-
-        <div class="form-group mb-3">
-            <label>Stok</label>
-            <input asp-for="Stock" class="form-control" />
-        </div>
-
-        <div class="form-group mb-3">
-            <label>Kategori</label>
-            <select asp-for="CategoryId" class="form-control" asp-items="ViewBag.CategoryId"></select>
-        </div>
-
-        <div class="form-group mb-4">
-            <label>Yeni Görseller Ekle</label>
-            <input type="file" name="imageFiles" multiple class="form-control" />
-            <small class="text-muted">JPG, JPEG, PNG veya WEBP yükleyebilirsin. Maksimum 5 MB.</small>
-        </div>
-
-        <button type="submit" class="btn btn-primary">
-            Kaydet
-        </button>
-
-        <a asp-action="Index" class="btn btn-secondary">
+        <a asp-action="Index" class="btn btn-outline-secondary">
             Geri Dön
         </a>
-    </form>
+    </div>
 
-    <hr class="my-4" />
+    <div class="row g-4">
 
-    <h4>Mevcut Görseller</h4>
-
-    @if (Model.Images != null && Model.Images.Any())
-    {
-        <div class="row">
-            @foreach (var img in Model.Images)
-            {
-                <div class="col-md-3 mb-4">
-                    <div class="card h-100 text-center p-2">
-
-                        <img src="@img.ImageUrl"
-                             class="img-fluid mb-2"
-                             style="height:150px; object-fit:contain;" />
-
-                        @if (Model.ImageUrl == img.ImageUrl)
-                        {
-                            <span class="badge bg-success mb-2">Ana Görsel</span>
-                        }
-                        else
-                        {
-                            <form asp-action="SetMainImage" method="post" class="mb-2">
-                                @Html.AntiForgeryToken()
-
-                                <input type="hidden" name="imageId" value="@img.Id" />
-                                <input type="hidden" name="productId" value="@Model.Id" />
-
-                                <button type="submit" class="btn btn-outline-primary btn-sm w-100">
-                                    Ana Görsel Yap
-                                </button>
-                            </form>
-                        }
-
-                        <form asp-action="DeleteImage" method="post"
-                              onsubmit="return confirm('Bu görsel silinsin mi?');">
-                            @Html.AntiForgeryToken()
-
-                            <input type="hidden" name="imageId" value="@img.Id" />
-                            <input type="hidden" name="productId" value="@Model.Id" />
-
-                            <button type="submit" class="btn btn-danger btn-sm w-100">
-                                Sil
-                            </button>
-                        </form>
-
-                    </div>
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">Ürün Bilgileri</h5>
                 </div>
-            }
+
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="ImageUrl" />
+
+                        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="Name" class="form-label">Ürün Adı</label>
+                            <input asp-for="Name" class="form-control" placeholder="Ürün adı girin" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Description" class="form-label">Açıklama</label>
+                            <textarea asp-for="Description" class="form-control" rows="3" placeholder="Kısa açıklama"></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Details" class="form-label">Detay</label>
+                            <textarea asp-for="Details" class="form-control" rows="4" placeholder="Ürün detayları"></textarea>
+                            <span asp-validation-for="Details" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Price" class="form-label">Fiyat</label>
+                                <input asp-for="Price" class="form-control" placeholder="0.00" />
+                                <span asp-validation-for="Price" class="text-danger"></span>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Stock" class="form-label">Stok</label>
+                                <input asp-for="Stock" class="form-control" placeholder="Stok miktarı" />
+                                <span asp-validation-for="Stock" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CategoryId" class="form-label">Kategori</label>
+                            <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
+                                <option value="">Kategori seçiniz</option>
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Yeni Görseller Ekle</label>
+                            <input type="file"
+                                   name="imageFiles"
+                                   multiple
+                                   accept=".jpg,.jpeg,.png,.webp"
+                                   class="form-control" />
+                            <div class="form-text">
+                                JPG, JPEG, PNG veya WEBP yükleyebilirsin. Her görsel maksimum 5 MB olmalıdır.
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                Kaydet
+                            </button>
+
+                            <a asp-action="Index" class="btn btn-secondary">
+                                İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-    }
-    else
-    {
-        <p class="text-muted">Bu ürüne ait görsel yok.</p>
-    }
+
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Mevcut Görseller</h5>
+
+                    @if (Model.Images != null && Model.Images.Any())
+                    {
+                        <span class="badge bg-dark">@Model.Images.Count görsel</span>
+                    }
+                </div>
+
+                <div class="card-body">
+
+                    @if (Model.Images != null && Model.Images.Any())
+                    {
+                        <div class="row g-3">
+                            @foreach (var img in Model.Images)
+                            {
+                                var isMainImage = Model.ImageUrl == img.ImageUrl;
+
+                                <div class="col-12">
+                                    <div class="image-admin-card @(isMainImage ? "main-image-card" : "")">
+
+                                        <div class="image-preview-box">
+                                            <img src="@img.ImageUrl"
+                                                 alt="@Model.Name"
+                                                 class="image-preview" />
+                                        </div>
+
+                                        <div class="image-actions">
+
+                                            @if (isMainImage)
+                                            {
+                                                <span class="badge bg-success mb-2">
+                                                    Ana Görsel
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <form asp-action="SetMainImage" method="post" class="mb-2">
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden" name="imageId" value="@img.Id" />
+                                                    <input type="hidden" name="productId" value="@Model.Id" />
+
+                                                    <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                                        Ana Görsel Yap
+                                                    </button>
+                                                </form>
+                                            }
+
+                                            <form asp-action="DeleteImage"
+                                                  method="post"
+                                                  onsubmit="return confirm('Bu görsel silinsin mi?');">
+                                                @Html.AntiForgeryToken()
+
+                                                <input type="hidden" name="imageId" value="@img.Id" />
+                                                <input type="hidden" name="productId" value="@Model.Id" />
+
+                                                <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                                                    Sil
+                                                </button>
+                                            </form>
+
+                                        </div>
+
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-image-state">
+                            <div class="empty-image-icon">📷</div>
+                            <h6>Görsel yok</h6>
+                            <p class="text-muted mb-0">
+                                Bu ürüne henüz görsel eklenmemiş.
+                            </p>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
+
+<style>
+    .image-admin-card {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+        border: 1px solid #e5e5e5;
+        border-radius: 14px;
+        padding: 12px;
+        background: #fff;
+        transition: 0.2s ease;
+    }
+
+        .image-admin-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            transform: translateY(-1px);
+        }
+
+    .main-image-card {
+        border: 2px solid #198754;
+        background: #f7fff9;
+    }
+
+    .image-preview-box {
+        width: 130px;
+        height: 110px;
+        flex-shrink: 0;
+        border-radius: 12px;
+        background: #f8f9fa;
+        border: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .image-preview {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 8px;
+    }
+
+    .image-actions {
+        flex: 1;
+    }
+
+    .empty-image-state {
+        text-align: center;
+        padding: 40px 20px;
+        border: 1px dashed #ccc;
+        border-radius: 14px;
+        background: #fafafa;
+    }
+
+    .empty-image-icon {
+        font-size: 42px;
+        margin-bottom: 10px;
+    }
+
+    @@media (max-width: 576px) {
+        .image-admin-card {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .image-preview-box {
+            width: 100%;
+            height: 180px;
+        }
+    }
+</style>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

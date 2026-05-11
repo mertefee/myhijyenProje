@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage;
 using myhijyenProje.Data;
 using myhijyenProje.Models;
 using myhijyenProje.Services;
@@ -52,51 +53,72 @@ namespace myhijyenProje.Controllers
                 return View("Index");
             }
 
-            var user = await _userManager.GetUserAsync(User);
+            using var transaction = await _context.Database.BeginTransactionAsync();
 
-            var order = new Order
+            try
             {
-                UserId = user?.Id,
-                FullName = fullName.Trim(),
-                Phone = phone.Trim(),
-                Address = address.Trim(),
-                Note = note?.Trim()
-            };
+                var user = await _userManager.GetUserAsync(User);
 
-            foreach (var c in cart)
-            {
-                var product = await _context.Products.FindAsync(c.ProductId);
-
-                if (product == null)
-                    return RedirectToAction("Index", "Cart");
-
-                if (product.Stock < c.Quantity)
+                var order = new Order
                 {
-                    ModelState.AddModelError("", $"{product.Name} için yeterli stok yok.");
-                    return View("Index");
+                    UserId = user?.Id,
+                    FullName = fullName.Trim(),
+                    Phone = phone.Trim(),
+                    Address = address.Trim(),
+                    Note = note?.Trim()
+                };
+
+                foreach (var c in cart)
+                {
+                    var product = await _context.Products.FindAsync(c.ProductId);
+
+                    if (product == null)
+                    {
+                        await transaction.RollbackAsync();
+
+                        ModelState.AddModelError("", "Sepetinizde artık mevcut olmayan bir ürün var.");
+                        return View("Index");
+                    }
+
+                    if (product.Stock < c.Quantity)
+                    {
+                        await transaction.RollbackAsync();
+
+                        ModelState.AddModelError("", $"{product.Name} için yeterli stok yok.");
+                        return View("Index");
+                    }
+
+                    var finalPrice = await _discountService.ApplyDiscountAsync(product.Price, User);
+
+                    product.Stock -= c.Quantity;
+
+                    order.Items.Add(new OrderItem
+                    {
+                        ProductId = c.ProductId,
+                        ProductName = product.Name,
+                        UnitPrice = finalPrice,
+                        Quantity = c.Quantity
+                    });
                 }
 
-                var finalPrice = await _discountService.ApplyDiscountAsync(product.Price, User);
+                order.Total = order.Items.Sum(x => x.UnitPrice * x.Quantity);
 
-                product.Stock -= c.Quantity;
+                _context.Orders.Add(order);
+                await _context.SaveChangesAsync();
 
-                order.Items.Add(new OrderItem
-                {
-                    ProductId = c.ProductId,
-                    ProductName = product.Name,
-                    UnitPrice = finalPrice,
-                    Quantity = c.Quantity
-                });
+                await transaction.CommitAsync();
+
+                HttpContext.Session.Remove("Cart");
+
+                return RedirectToAction("Success", new { id = order.Id });
             }
+            catch
+            {
+                await transaction.RollbackAsync();
 
-            order.Total = order.Items.Sum(x => x.UnitPrice * x.Quantity);
-
-            _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
-
-            HttpContext.Session.Remove("Cart");
-
-            return RedirectToAction("Success", new { id = order.Id });
+                ModelState.AddModelError("", "Sipariş oluşturulurken bir hata oluştu. Lütfen tekrar deneyin.");
+                return View("Index");
+            }
         }
 
         public IActionResult Success(int id)

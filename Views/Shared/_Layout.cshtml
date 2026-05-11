@@ -30,9 +30,17 @@
         <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm">
             <div class="container">
 
-                <a class="navbar-brand fw-bold" href="/Store">myhijyen</a>
+                <a class="navbar-brand fw-bold" asp-controller="Store" asp-action="Index">
+                    myhijyen
+                </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                <button class="navbar-toggler"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#mainNavbar"
+                        aria-controls="mainNavbar"
+                        aria-expanded="false"
+                        aria-label="Menüyü Aç">
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
@@ -41,7 +49,9 @@
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
 
                         <li class="nav-item">
-                            <a class="nav-link" href="/Store">Mağaza</a>
+                            <a class="nav-link" asp-controller="Store" asp-action="Index">
+                                Mağaza
+                            </a>
                         </li>
 
                         <li class="nav-item">
@@ -58,7 +68,7 @@
                             </a>
                         </li>
 
-                        @if (User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
+                        @if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link"
@@ -103,7 +113,6 @@
                                 </a>
                             </li>
 
-                            <!-- 🔥 YENİ ADMIN DROPDOWN -->
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle"
                                    href="#"
@@ -114,7 +123,7 @@
                                     Corporate
                                 </a>
 
-                                <ul class="dropdown-menu shadow-sm border-0"
+                                <ul class="dropdown-menu shadow-sm"
                                     aria-labelledby="corporateDropdown">
 
                                     <li>
@@ -181,7 +190,8 @@
 
                 <button type="button"
                         class="btn-close btn-close-white me-2 m-auto"
-                        data-bs-dismiss="toast">
+                        data-bs-dismiss="toast"
+                        aria-label="Kapat">
                 </button>
             </div>
 
@@ -200,7 +210,8 @@
 
             <button type="button"
                     class="btn-close"
-                    onclick="closeCartPanel()">
+                    onclick="closeCartPanel()"
+                    aria-label="Kapat">
             </button>
         </div>
 
@@ -234,12 +245,9 @@
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-
     <script src="~/js/site.js" asp-append-version="true"></script>
 
     @RenderSection("Scripts", required: false)
-
 </body>
 </html>

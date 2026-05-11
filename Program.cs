@@ -59,7 +59,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    string adminEmail = "mertefelale@gmail.com";
+    string adminEmail = builder.Configuration["AdminSettings:Email"];
 
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
 

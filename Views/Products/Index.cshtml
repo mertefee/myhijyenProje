@@ -2,47 +2,279 @@
 
 @{
     ViewData["Title"] = "Ürün Yönetimi";
+
+    string search = ViewBag.Search as string ?? "";
+    string stockStatus = ViewBag.StockStatus as string ?? "";
 }
 
-<h2 class="mb-3">Ürün Yönetimi</h2>
+<div class="container mt-4 mb-5">
 
-<p>
-    <a href="/Products/Create" class="btn btn-primary">+ Yeni Ürün</a>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1">Ürün Yönetimi</h2>
+            <p class="text-muted mb-0">Ürünleri buradan arayabilir, filtreleyebilir, düzenleyebilir veya silebilirsin.</p>
+        </div>
 
-</p>
+        <a asp-action="Create" class="btn btn-primary">
+            + Yeni Ürün
+        </a>
+    </div>
 
-<table class="table table-striped align-middle">
-    <thead>
-        <tr>
-            <th>Görsel</th>
-            <th>Ürün</th>
-            <th>Kategori</th>
-            <th>Fiyat</th>
-            <th>Stok</th>
-            <th style="width:220px;">İşlemler</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>
-                    @if (!string.IsNullOrEmpty(item.ImageUrl))
-                    {
-                        <img src="@item.ImageUrl"
-                             style="width:70px;height:70px;object-fit:contain;background:#f5f5f5;border:1px solid #ddd;padding:6px;border-radius:6px;" />
-                    }
-                </td>
-                <td class="fw-bold">@item.Name</td>
-                <td>@item.Category?.Name</td>
-                <td>@item.Price ₺</td>
-                <td>@item.Stock</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-warning">Düzenle</a>
-                    <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">Detay</a>
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger">Sil</a>
-                </td>
-            </tr>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Ürün Arama ve Filtreleme</h5>
+        </div>
+
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+
+                <div class="col-md-4">
+                    <label class="form-label">Ürün Ara</label>
+                    <input type="text"
+                           name="search"
+                           value="@search"
+                           class="form-control"
+                           placeholder="Ürün adı veya açıklama ara..." />
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Kategori</label>
+                    <select name="categoryId" class="form-select" asp-items="ViewBag.CategoryId">
+                        <option value="">Tüm Kategoriler</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Stok Durumu</label>
+                    <select name="stockStatus" class="form-select">
+                        <option value="">Tüm Stoklar</option>
+
+                        @if (stockStatus == "inStock")
+                        {
+                            <option value="inStock" selected>Stokta Var</option>
+                        }
+                        else
+                        {
+                            <option value="inStock">Stokta Var</option>
+                        }
+
+                        @if (stockStatus == "lowStock")
+                        {
+                            <option value="lowStock" selected>Az Stok</option>
+                        }
+                        else
+                        {
+                            <option value="lowStock">Az Stok</option>
+                        }
+
+                        @if (stockStatus == "outOfStock")
+                        {
+                            <option value="outOfStock" selected>Stok Yok</option>
+                        }
+                        else
+                        {
+                            <option value="outOfStock">Stok Yok</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn btn-dark w-100">
+                        Ara
+                    </button>
+
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        Temizle
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Ürün Listesi</h5>
+            <span class="badge bg-dark">@Model.Count() ürün</span>
+        </div>
+
+        <div class="card-body p-0">
+
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Görsel</th>
+                                <th>Ürün</th>
+                                <th>Kategori</th>
+                                <th>Fiyat</th>
+                                <th>Stok</th>
+                                <th class="text-end" style="width: 260px;">İşlemler</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td style="width: 90px;">
+                                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                        {
+                                            <div class="product-thumb">
+                                                <img src="@item.ImageUrl" alt="@item.Name" />
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="product-thumb no-image">
+                                                Yok
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        <div class="fw-semibold">@item.Name</div>
+
+                                        @if (!string.IsNullOrWhiteSpace(item.Description))
+                                        {
+                                            <div class="text-muted small product-description">
+                                                @item.Description
+                                            </div>
+                                        }
+                                    </td>
+
+                                    <td>
+                                        @if (item.Category != null)
+                                        {
+                                            <span class="badge bg-light text-dark border">
+                                                @item.Category.Name
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Kategori yok</span>
+                                        }
+                                    </td>
+
+                                    <td class="fw-semibold">
+                                        @item.Price.ToString("N2") ₺
+                                    </td>
+
+                                    <td>
+                                        @if (item.Stock <= 0)
+                                        {
+                                            <span class="badge bg-danger">Stok Yok</span>
+                                        }
+                                        else if (item.Stock <= 5)
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                Az Stok: @item.Stock
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">
+                                                @item.Stock adet
+                                            </span>
+                                        }
+                                    </td>
+
+                                    <td class="text-end">
+                                        <div class="btn-group">
+                                            <a asp-action="Edit"
+                                               asp-route-id="@item.Id"
+                                               class="btn btn-sm btn-outline-primary">
+                                                Düzenle
+                                            </a>
+
+                                            <a asp-action="Details"
+                                               asp-route-id="@item.Id"
+                                               class="btn btn-sm btn-outline-info">
+                                                Detay
+                                            </a>
+
+                                            <a asp-action="Delete"
+                                               asp-route-id="@item.Id"
+                                               class="btn btn-sm btn-outline-danger">
+                                                Sil
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-product-state">
+                    <h5>Ürün bulunamadı</h5>
+                    <p class="text-muted">Arama veya filtreleri değiştirerek tekrar dene.</p>
+
+                    <a asp-action="Index" class="btn btn-outline-secondary me-2">
+                        Filtreleri Temizle
+                    </a>
+
+                    <a asp-action="Create" class="btn btn-primary">
+                        + Yeni Ürün Ekle
+                    </a>
+                </div>
+            }
+
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .product-thumb {
+        width: 70px;
+        height: 70px;
+        border-radius: 10px;
+        background: #f8f9fa;
+        border: 1px solid #e5e5e5;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+        .product-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 6px;
         }
-    </tbody>
-</table>
+
+        .product-thumb.no-image {
+            color: #999;
+            font-size: 12px;
+        }
+
+    .product-description {
+        max-width: 360px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .empty-product-state {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    @@media (max-width: 768px) {
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+            .btn-group .btn {
+                border-radius: 6px !important;
+            }
+    }
+</style>
